@@ -1,17 +1,17 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { mockMessages } from '@/data/messages'
+import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
 
 const menuItems = [
-  { emoji: '📋', label: '我的发布', path: '', count: 0 },
-  { emoji: '🤝', label: '参与协寻', path: '', count: 0 },
-  { emoji: '🔔', label: '消息提醒', path: '', count: 3 },
-  { emoji: '✅', label: '找回确认', path: '', count: 0 },
-  { emoji: '📢', label: '物业广播', path: '', count: 0 },
-  { emoji: '🚫', label: '虚假举报', path: '', count: 0 },
-  { emoji: '⏰', label: '过期处理', path: '', count: 1 }
+  { emoji: '📋', label: '我的发布', path: '/pages/myPublish/index' },
+  { emoji: '🤝', label: '参与协寻', path: '/pages/participate/index' },
+  { emoji: '🔔', label: '消息提醒', path: '/pages/messages/index' },
+  { emoji: '✅', label: '找回确认', path: '/pages/foundConfirm/index' },
+  { emoji: '📢', label: '物业广播', path: '/pages/broadcast/index' },
+  { emoji: '🚫', label: '虚假举报', path: '/pages/report/index' },
+  { emoji: '⏰', label: '过期处理', path: '/pages/expired/index' }
 ]
 
 const thanksList = [
@@ -23,11 +23,24 @@ const thanksList = [
 ]
 
 const MinePage: React.FC = () => {
-  const unreadCount = mockMessages.filter(m => !m.isRead).length
+  const { pets, getUnreadMessageCount, getExpiredPets } = usePetStore()
+  const unreadCount = getUnreadMessageCount()
+  const expiredCount = getExpiredPets().length
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const needExpiredCount = pets.filter(p =>
+    !p.isExpired && p.status !== 'found' && p.lostTime.slice(0, 10) < sevenDaysAgo
+  ).length
 
-  const handleMenuClick = (label: string) => {
-    console.info(`[Mine] Menu clicked: ${label}`)
-    Taro.showToast({ title: `${label}功能开发中`, icon: 'none' })
+  const myPublishCount = pets.length
+  const myParticipateCount = pets.filter(p => p.volunteerCount > 0).length
+  const myFoundCount = pets.filter(p => p.status === 'found').length
+
+  const handleMenuClick = (path: string, label: string) => {
+    console.info('[Mine] Menu clicked:', label, 'path:', path)
+    Taro.navigateTo({ url: path }).catch(err => {
+      console.error('[Mine] Navigate failed:', err)
+      Taro.showToast({ title: `${label}功能开发中`, icon: 'none' })
+    })
   }
 
   return (
@@ -44,15 +57,15 @@ const MinePage: React.FC = () => {
 
       <View className={styles.statsRow}>
         <View className={styles.statItem}>
-          <Text className={styles.statNum}>3</Text>
+          <Text className={styles.statNum}>{myPublishCount}</Text>
           <Text className={styles.statLabel}>我的发布</Text>
         </View>
         <View className={styles.statItem}>
-          <Text className={styles.statNum}>8</Text>
-          <Text className={styles.statLabel">参与协寻</Text>
+          <Text className={styles.statNum}>{myParticipateCount}</Text>
+          <Text className={styles.statLabel}>参与协寻</Text>
         </View>
         <View className={styles.statItem}>
-          <Text className={styles.statNum}>2</Text>
+          <Text className={styles.statNum}>{myFoundCount}</Text>
           <Text className={styles.statLabel}>成功找回</Text>
         </View>
       </View>
@@ -65,7 +78,7 @@ const MinePage: React.FC = () => {
           <View
             key={item.label}
             className={styles.menuItem}
-            onClick={() => handleMenuClick(item.label)}
+            onClick={() => handleMenuClick(item.path, item.label)}
           >
             <View className={styles.menuLeft}>
               <Text className={styles.menuEmoji}>{item.emoji}</Text>
@@ -77,9 +90,9 @@ const MinePage: React.FC = () => {
                   <Text className={styles.badgeText}>{unreadCount}</Text>
                 </View>
               )}
-              {item.label === '过期处理' && (
+              {item.label === '过期处理' && needExpiredCount > 0 && (
                 <View className={styles.menuBadge}>
-                  <Text className={styles.badgeText}>1</Text>
+                  <Text className={styles.badgeText}>{needExpiredCount}</Text>
                 </View>
               )}
               <Text className={styles.menuArrow}>▶</Text>

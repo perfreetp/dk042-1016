@@ -5,7 +5,14 @@ export default defineAppConfig({
     'pages/map/index',
     'pages/mine/index',
     'pages/detail/index',
-    'pages/clueSubmit/index'
+    'pages/clueSubmit/index',
+    'pages/messages/index',
+    'pages/expired/index',
+    'pages/myPublish/index',
+    'pages/participate/index',
+    'pages/foundConfirm/index',
+    'pages/broadcast/index',
+    'pages/report/index'
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -1,0 +1,44 @@
+@use '@/styles/variables.scss' as *;
+
+.myPublishPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding: $spacing-md $page-padding;
+}
+
+.emptyState {
+  @include flex-center;
+  flex-direction: column;
+  padding: 120rpx 0;
+  gap: $spacing-md;
+
+  .emptyIcon {
+    font-size: 80rpx;
+  }
+
+  .emptyText {
+    font-size: $font-size-md;
+    color: $color-text-tertiary;
+  }
+
+  .actionBtn {
+    @include button-reset;
+    margin-top: $spacing-lg;
+    padding: 0 $spacing-xl;
+    height: $button-height-md;
+    border-radius: $radius-button;
+    background-color: $color-primary;
+    transition: all $transition-base;
+
+    .btnText {
+      font-size: $font-size-md;
+      color: $color-text-white;
+      font-weight: $font-weight-medium;
+    }
+
+    &:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+  }
+}

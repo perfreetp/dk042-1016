@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import classnames from 'classnames'
-import { mockSightings } from '@/data/sightings'
+import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
 
 type MapTabType = 'all' | 'sighting' | 'patrol' | 'route'
@@ -34,10 +34,12 @@ const markerPositions = [
 
 const MapPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MapTabType>('all')
+  const { getSightingsByType } = usePetStore()
 
-  const filteredSightings = activeTab === 'all'
-    ? mockSightings
-    : mockSightings.filter(s => s.type === activeTab)
+  const filteredSightings = useMemo(() => {
+    console.info('[Map] Filter changed:', activeTab)
+    return getSightingsByType(activeTab)
+  }, [activeTab, getSightingsByType])
 
   return (
     <View className={styles.mapPage}>
@@ -61,11 +63,14 @@ const MapPage: React.FC = () => {
           {[25, 50, 75].map(left => (
             <View key={`v${left}`} className={classnames(styles.gridLine, styles.gridLineV)} style={{ left: `${left}%` }} />
           ))}
-          {mockSightings.map((s, i) => (
+          {filteredSightings.map((s, i) => (
             <View
               key={s.id}
               className={styles.mapMarker}
-              style={{ top: markerPositions[i]?.top || '50%', left: markerPositions[i]?.left || '50%' }}
+              style={{
+                top: markerPositions[i % markerPositions.length]?.top || '50%',
+                left: markerPositions[i % markerPositions.length]?.left || '50%'
+              }}
             >
               <View className={classnames(styles.markerDot, styles[s.type])} />
               <Text className={styles.markerLabel}>{s.address.slice(0, 4)}</Text>
@@ -94,17 +99,23 @@ const MapPage: React.FC = () => {
       </View>
 
       <ScrollView scrollY className={styles.sightingList}>
-        {filteredSightings.map(s => (
-          <View key={s.id} className={styles.sightingCard}>
-            <View className={styles.cardHeader}>
-              <Text className={styles.cardTitle}>{s.address}</Text>
-              <Text className={classnames(styles.cardType, styles[s.type])}>{typeLabels[s.type]}</Text>
+        {filteredSightings.length > 0 ? (
+          filteredSightings.map(s => (
+            <View key={s.id} className={styles.sightingCard}>
+              <View className={styles.cardHeader}>
+                <Text className={styles.cardTitle}>{s.address}</Text>
+                <Text className={classnames(styles.cardType, styles[s.type])}>{typeLabels[s.type]}</Text>
+              </View>
+              <Text className={styles.cardAddress}>{s.address}</Text>
+              <Text className={styles.cardDesc}>{s.description}</Text>
+              {s.time && <Text className={styles.cardTime}>{s.time}</Text>}
             </View>
-            <Text className={styles.cardAddress}>{s.address}</Text>
-            <Text className={styles.cardDesc}>{s.description}</Text>
-            {s.time && <Text className={styles.cardTime}>{s.time}</Text>}
+          ))
+        ) : (
+          <View style={{ padding: 60, textAlign: 'center' }}>
+            <Text style={{ fontSize: 28, color: '#999' }}>暂无{typeLabels[activeTab] || '位置'}信息</Text>
           </View>
-        ))}
+        )}
       </ScrollView>
     </View>
   )

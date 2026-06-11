@@ -1,48 +1,97 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import StatusTag from '@/components/StatusTag'
-import { mockPets } from '@/data/pets'
+import { usePetStore } from '@/store/petStore'
+import type { PetInfo } from '@/types/pet'
 import styles from './index.module.scss'
 
-const progressData = [
-  { text: '主人发布走失信息', time: '2026-06-10 10:00' },
-  { text: '邻居反馈3栋花坛附近目击', time: '2026-06-10 11:30' },
-  { text: '物业发布小区广播', time: '2026-06-11 16:00' },
-  { text: '5栋车库入口发现疑似踪迹', time: '2026-06-12 09:30' }
-]
-
 const DetailPage: React.FC = () => {
-  const pet = mockPets[0]
+  const router = useRouter()
+  const { getPetById, getProgressByPetId, incrementViewCount, incrementVolunteerCount, pets } = usePetStore()
+  const [pet, setPet] = useState<PetInfo | undefined>()
+  const [progressData, setProgressData] = useState<Array<{ text: string; time: string }>>([])
+
+  const loadData = () => {
+    const petId = router.params.id
+    console.info('[Detail] Loading pet with id:', petId)
+    const foundPet = getPetById(petId || '')
+    setPet(foundPet)
+
+    if (foundPet) {
+      incrementViewCount(foundPet.id)
+      const progress = getProgressByPetId(foundPet.id)
+      if (progress.length > 0) {
+        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt })))
+      } else {
+        setProgressData([
+          { text: '主人发布走失信息', time: foundPet.createdAt }
+        ])
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadData()
+  }, [router.params.id])
+
+  useDidShow(() => {
+    loadData()
+  })
+
+  useEffect(() => {
+    const foundPet = pets.find(p => p.id === router.params.id)
+    if (foundPet && pet && foundPet.clueCount !== pet.clueCount) {
+      setPet(foundPet)
+      const progress = getProgressByPetId(foundPet.id)
+      if (progress.length > 0) {
+        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt })))
+      }
+    }
+  }, [pets])
+
+  if (!pet) {
+    return (
+      <View className={styles.detailPage} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 100 }}>
+        <Text style={{ fontSize: 28, color: '#999' }}>宠物不存在</Text>
+      </View>
+    )
+  }
 
   const petTypeLabel = pet.petType === 'cat' ? '猫' : pet.petType === 'dog' ? '狗' : '其他'
   const bodySizeLabel = pet.bodySize === 'small' ? '小型' : pet.bodySize === 'medium' ? '中型' : '大型'
 
   const handleCall = () => {
-    console.info('[Detail] Call owner')
-    Taro.makePhoneCall({ phoneNumber: '13800006789' }).catch(err => {
+    console.info('[Detail] Call owner for pet:', pet.id, pet.nickname)
+    const phone = pet.ownerPhone.replace(/\*/g, '0')
+    Taro.makePhoneCall({ phoneNumber: phone }).catch(err => {
       console.error('[Detail] Call failed', err)
-      Taro.showToast({ title: '拨打失败', icon: 'none' })
+      Taro.showToast({ title: '拨打失败，请稍后重试', icon: 'none' })
     })
   }
 
   const handleSubmitClue = () => {
+    console.info('[Detail] Navigate to submit clue for pet:', pet.id)
     Taro.navigateTo({ url: `/pages/clueSubmit/index?id=${pet.id}` })
   }
 
   const handlePhotoCompare = () => {
-    console.info('[Detail] Photo compare')
+    console.info('[Detail] Photo compare for pet:', pet.id)
     Taro.showToast({ title: '照片比对功能开发中', icon: 'none' })
   }
 
   const handleVolunteer = () => {
-    console.info('[Detail] Volunteer sign up')
-    Taro.showToast({ title: '协寻报名成功', icon: 'success' })
+    console.info('[Detail] Volunteer sign up for pet:', pet.id)
+    incrementVolunteerCount(pet.id)
+    Taro.showToast({ title: '协寻报名成功！', icon: 'success' })
+    setTimeout(() => {
+      loadData()
+    }, 500)
   }
 
   const handleReport = () => {
-    console.info('[Detail] Report false clue')
-    Taro.showToast({ title: '举报已提交，我们会核实', icon: 'none' })
+    console.info('[Detail] Report false clue for pet:', pet.id)
+    Taro.navigateTo({ url: '/pages/report/index' })
   }
 
   return (
@@ -90,6 +139,10 @@ const DetailPage: React.FC = () => {
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>主人</Text>
           <Text className={styles.infoValue}>{pet.ownerName}</Text>
+        </View>
+        <View className={styles.infoRow}>
+          <Text className={styles.infoLabel}>联系方式</Text>
+          <Text className={styles.infoValue}>{pet.ownerPhone}</Text>
         </View>
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>补充描述</Text>

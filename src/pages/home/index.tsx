@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classnames from 'classnames'
 import SectionHeader from '@/components/SectionHeader'
 import PetCard from '@/components/PetCard'
-import { mockPets, lostPets, suspectedPets, rewardPets } from '@/data/pets'
+import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
 
 type FilterType = 'all' | 'lost' | 'suspected' | 'found'
@@ -17,18 +17,27 @@ const filters: { key: FilterType; label: string }[] = [
 ]
 
 const HomePage: React.FC = () => {
+  const { pets } = usePetStore()
   const [activeFilter, setActiveFilter] = useState<FilterType>('all')
 
-  const filteredPets = activeFilter === 'all'
-    ? mockPets
-    : mockPets.filter(p => p.status === activeFilter)
+  const lostPets = useMemo(() => pets.filter(p => p.status === 'lost'), [pets])
+  const suspectedPets = useMemo(() => pets.filter(p => p.status === 'suspected'), [pets])
+  const foundPets = useMemo(() => pets.filter(p => p.status === 'found'), [pets])
+  const rewardPets = useMemo(() => pets.filter(p => p.reward > 0 && p.status !== 'found'), [pets])
+
+  const filteredPets = useMemo(() => {
+    if (activeFilter === 'all') return pets
+    return pets.filter(p => p.status === activeFilter)
+  }, [activeFilter, pets])
 
   const handleSearch = () => {
     console.info('[Home] Search tapped')
+    Taro.showToast({ title: '搜索功能开发中', icon: 'none' })
   }
 
-  const handlePublish = () => {
-    Taro.switchTab({ url: '/pages/publish/index' })
+  const handleRewardPetClick = (petId: string) => {
+    console.info('[Home] Click reward pet:', petId)
+    Taro.navigateTo({ url: `/pages/detail/index?id=${petId}` })
   }
 
   const handleViewAll = (type: string) => {
@@ -57,7 +66,7 @@ const HomePage: React.FC = () => {
               <Text className={styles.statLabel}>疑似发现</Text>
             </View>
             <View className={styles.statItem}>
-              <Text className={styles.statNum}>{mockPets.filter(p => p.status === 'found').length}</Text>
+              <Text className={styles.statNum}>{foundPets.length}</Text>
               <Text className={styles.statLabel}>已找回</Text>
             </View>
             <View className={styles.statItem}>
@@ -95,7 +104,11 @@ const HomePage: React.FC = () => {
           />
           <ScrollView scrollX className={styles.scrollRow}>
             {rewardPets.map(pet => (
-              <View key={pet.id} className={styles.rewardScrollItem}>
+              <View
+                key={pet.id}
+                className={styles.rewardScrollItem}
+                onClick={() => handleRewardPetClick(pet.id)}
+              >
                 <View className={styles.rewardCard}>
                   <Image className={styles.rewardImage} src={pet.photo} mode="aspectFill" />
                   <View className={styles.rewardInfo}>

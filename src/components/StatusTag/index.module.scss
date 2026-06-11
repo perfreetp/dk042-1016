@@ -1,0 +1,50 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-xs;
+  white-space: nowrap;
+
+  .tagText {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+  }
+
+  &.lost {
+    background-color: $color-tag-bg-lost;
+    .tagText {
+      color: $color-status-lost;
+    }
+  }
+
+  &.found {
+    background-color: $color-tag-bg-found;
+    .tagText {
+      color: $color-status-found;
+    }
+  }
+
+  &.suspected {
+    background-color: $color-tag-bg-suspected;
+    .tagText {
+      color: $color-status-suspected;
+    }
+  }
+
+  &.reward {
+    background-color: $color-tag-bg-reward;
+    .tagText {
+      color: $color-status-reward;
+    }
+  }
+
+  &.small {
+    padding: 2rpx 10rpx;
+    .tagText {
+      font-size: 20rpx;
+    }
+  }
+}

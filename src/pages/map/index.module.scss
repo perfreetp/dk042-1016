@@ -1,0 +1,248 @@
+@use '@/styles/variables.scss' as *;
+
+.mapPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapTabs {
+  display: flex;
+  background-color: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  gap: $spacing-sm;
+  box-shadow: $shadow-card;
+
+  .mapTab {
+    @include button-reset;
+    flex: 1;
+    height: $button-height-sm;
+    border-radius: $radius-sm;
+    background-color: $color-bg-page;
+    transition: all $transition-fast;
+
+    .tabText {
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+      white-space: nowrap;
+    }
+
+    &.active {
+      background-color: $color-tag-bg-reward;
+      border: 2rpx solid $color-primary;
+
+      .tabText {
+        color: $color-primary;
+        font-weight: $font-weight-medium;
+      }
+    }
+  }
+}
+
+.mapContainer {
+  flex: 1;
+  position: relative;
+  height: 600rpx;
+  margin: $spacing-md $page-padding;
+  background-color: #E8E4DF;
+  border-radius: $radius-md;
+  overflow: hidden;
+
+  .mapPlaceholder {
+    width: 100%;
+    height: 100%;
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-sm;
+    background: linear-gradient(180deg, #F0EDE8 0%, #E8E4DF 100%);
+    position: relative;
+  }
+
+  .mapGrid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.3;
+  }
+
+  .gridLine {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+
+  .gridLineH {
+    left: 0;
+    right: 0;
+    height: 2rpx;
+  }
+
+  .gridLineV {
+    top: 0;
+    bottom: 0;
+    width: 2rpx;
+  }
+
+  .mapMarker {
+    position: absolute;
+    @include flex-center;
+    flex-direction: column;
+    transform: translate(-50%, -100%);
+    z-index: 2;
+
+    .markerDot {
+      width: 32rpx;
+      height: 32rpx;
+      border-radius: 50%;
+      border: 4rpx solid $color-bg-card;
+      box-shadow: $shadow-card;
+
+      &.sighting {
+        background-color: $color-status-lost;
+      }
+
+      &.patrol {
+        background-color: $color-info;
+      }
+
+      &.route {
+        background-color: $color-success;
+      }
+    }
+
+    .markerLabel {
+      font-size: 18rpx;
+      color: $color-text-primary;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 2rpx 8rpx;
+      border-radius: $radius-xs;
+      margin-top: 4rpx;
+      white-space: nowrap;
+    }
+  }
+
+  .mapCenter {
+    @include flex-center;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    .mapIcon {
+      font-size: 80rpx;
+    }
+
+    .mapTip {
+      font-size: $font-size-sm;
+      color: $color-text-tertiary;
+    }
+  }
+}
+
+.legend {
+  display: flex;
+  gap: $spacing-lg;
+  padding: $spacing-sm $page-padding;
+
+  .legendItem {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+
+    .legendDot {
+      width: 16rpx;
+      height: 16rpx;
+      border-radius: 50%;
+
+      &.sighting {
+        background-color: $color-status-lost;
+      }
+
+      &.patrol {
+        background-color: $color-info;
+      }
+
+      &.route {
+        background-color: $color-success;
+      }
+    }
+
+    .legendText {
+      font-size: $font-size-xs;
+      color: $color-text-secondary;
+    }
+  }
+}
+
+.sightingList {
+  padding: 0 $page-padding;
+  padding-bottom: 120rpx;
+
+  .sightingCard {
+    background-color: $color-bg-card;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card;
+    padding: $spacing-md $spacing-lg;
+    margin-bottom: $spacing-md;
+    transition: all $transition-base;
+
+    &:active {
+      opacity: 0.9;
+      transform: scale(0.98);
+    }
+
+    .cardHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: $spacing-sm;
+
+      .cardTitle {
+        font-size: $font-size-md;
+        font-weight: $font-weight-medium;
+        color: $color-text-primary;
+        @include text-ellipsis;
+      }
+
+      .cardType {
+        font-size: $font-size-xs;
+        padding: 4rpx 12rpx;
+        border-radius: $radius-xs;
+        white-space: nowrap;
+
+        &.sighting {
+          color: $color-status-lost;
+          background-color: $color-tag-bg-lost;
+        }
+
+        &.patrol {
+          color: $color-info;
+          background-color: rgba(24, 144, 255, 0.1);
+        }
+
+        &.route {
+          color: $color-success;
+          background-color: $color-tag-bg-found;
+        }
+      }
+    }
+
+    .cardAddress {
+      font-size: $font-size-sm;
+      color: $color-text-secondary;
+      margin-bottom: 8rpx;
+    }
+
+    .cardDesc {
+      font-size: $font-size-sm;
+      color: $color-text-tertiary;
+      @include text-ellipsis-multi(2);
+    }
+
+    .cardTime {
+      font-size: $font-size-xs;
+      color: $color-text-disabled;
+      margin-top: 8rpx;
+    }
+  }
+}

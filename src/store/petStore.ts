@@ -23,6 +23,8 @@ interface PetStore {
   getCluesByPetId: (petId: string) => ClueInfo[]
 
   getSightingsByType: (type: 'all' | 'sighting' | 'patrol' | 'route') => SightingPoint[]
+  getSightingsByPetId: (petId: string) => SightingPoint[]
+  getSightingsByPetAndType: (petId: string, type: 'all' | 'sighting' | 'patrol' | 'route') => SightingPoint[]
 
   getUnreadMessageCount: () => number
   getExpiredPets: () => PetInfo[]
@@ -123,10 +125,27 @@ export const usePetStore = create<PetStore>((set, get) => ({
     set((state) => ({ clues: [newClue, ...state.clues] }))
     get().incrementClueCount(clueData.petId)
 
+    const baseLat = 30.57
+    const baseLng = 104.068
+    const randomLat = baseLat + (Math.random() - 0.5) * 0.01
+    const randomLng = baseLng + (Math.random() - 0.5) * 0.01
+    const newSighting: SightingPoint = {
+      id: `s${Date.now()}`,
+      petId: clueData.petId,
+      latitude: randomLat,
+      longitude: randomLng,
+      address: clueData.location,
+      time: clueData.time,
+      description: clueData.content.slice(0, 30),
+      type: 'sighting'
+    }
+    set((state) => ({ sightings: [newSighting, ...state.sightings] }))
+
     const progressContent = `新线索：${clueData.content.slice(0, 20)}${clueData.content.length > 20 ? '...' : ''}`
     get().addProgressUpdate({
       petId: clueData.petId,
       content: progressContent,
+      photo: clueData.photo || undefined,
       createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
     })
 
@@ -140,6 +159,16 @@ export const usePetStore = create<PetStore>((set, get) => ({
   getSightingsByType: (type) => {
     if (type === 'all') return get().sightings
     return get().sightings.filter(s => s.type === type)
+  },
+
+  getSightingsByPetId: (petId) => {
+    return get().sightings.filter(s => s.petId === petId)
+  },
+
+  getSightingsByPetAndType: (petId, type) => {
+    const petSightings = get().sightings.filter(s => s.petId === petId)
+    if (type === 'all') return petSightings
+    return petSightings.filter(s => s.type === type)
   },
 
   getUnreadMessageCount: () => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, Input, Textarea } from '@tarojs/components'
+import { View, Text, Input, Textarea, Image } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
@@ -14,7 +14,42 @@ const ClueSubmitPage: React.FC = () => {
   const [location, setLocation] = useState('')
   const [time, setTime] = useState('')
   const [reporterName, setReporterName] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleChooseImage = () => {
+    Taro.showActionSheet({
+      itemList: ['从相册选择', '拍照'],
+      success: (res) => {
+        const sourceType: ('album' | 'camera')[] = res.tapIndex === 0
+          ? ['album']
+          : ['camera']
+        Taro.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType,
+          success: (imgRes) => {
+            const tempPath = imgRes.tempFilePaths[0]
+            if (tempPath) {
+              setPhotoUrl(tempPath)
+              console.info('[ClueSubmit] Photo selected:', tempPath)
+            }
+          },
+          fail: (err) => {
+            console.error('[ClueSubmit] Choose image failed:', err)
+            if (err.errMsg && err.errMsg.indexOf('cancel') === -1) {
+              Taro.showToast({ title: '选择照片失败', icon: 'none' })
+            }
+          }
+        })
+      },
+      fail: () => {}
+    })
+  }
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl('')
+  }
 
   const handleSubmit = () => {
     if (isSubmitting) return
@@ -40,7 +75,7 @@ const ClueSubmitPage: React.FC = () => {
       addClue({
         petId,
         content: content.trim(),
-        photo: '',
+        photo: photoUrl,
         location: location.trim(),
         time: formattedTime,
         reporterName: reporterName.trim() || '匿名好心人'
@@ -54,6 +89,7 @@ const ClueSubmitPage: React.FC = () => {
         setLocation('')
         setTime('')
         setReporterName('')
+        setPhotoUrl('')
         setIsSubmitting(false)
         Taro.navigateBack()
       }, 1500)
@@ -92,13 +128,22 @@ const ClueSubmitPage: React.FC = () => {
       <View className={styles.formSection}>
         <Text className={styles.sectionTitle}>线索照片（选填）</Text>
         <View className={styles.photoUpload}>
-          <View className={styles.addPhoto}>
-            <Text className={styles.addIcon}>+</Text>
-            <Text className={styles.addText}>添加照片</Text>
-          </View>
+          {photoUrl ? (
+            <View className={styles.photoItem}>
+              <Image className={styles.photoImg} src={photoUrl} mode="aspectFill" />
+              <View className={styles.removeBtn} onClick={handleRemovePhoto}>
+                <Text className={styles.removeText}>×</Text>
+              </View>
+            </View>
+          ) : (
+            <View className={styles.addPhoto} onClick={handleChooseImage}>
+              <Text className={styles.addIcon}>+</Text>
+              <Text className={styles.addText}>添加照片</Text>
+            </View>
+          )}
         </View>
         <Text style={{ fontSize: 22, color: '#999', marginTop: 8 }}>
-          照片上传功能开发中，不影响提交线索
+          上传线索照片能帮助主人更快确认
         </Text>
       </View>
 

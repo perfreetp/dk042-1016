@@ -10,7 +10,7 @@ const DetailPage: React.FC = () => {
   const router = useRouter()
   const { getPetById, getProgressByPetId, incrementViewCount, incrementVolunteerCount, pets } = usePetStore()
   const [pet, setPet] = useState<PetInfo | undefined>()
-  const [progressData, setProgressData] = useState<Array<{ text: string; time: string }>>([])
+  const [progressData, setProgressData] = useState<Array<{ text: string; time: string; photo?: string }>>([])
 
   const loadData = () => {
     const petId = router.params.id
@@ -22,7 +22,7 @@ const DetailPage: React.FC = () => {
       incrementViewCount(foundPet.id)
       const progress = getProgressByPetId(foundPet.id)
       if (progress.length > 0) {
-        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt })))
+        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt, photo: p.photo })))
       } else {
         setProgressData([
           { text: '主人发布走失信息', time: foundPet.createdAt }
@@ -45,7 +45,7 @@ const DetailPage: React.FC = () => {
       setPet(foundPet)
       const progress = getProgressByPetId(foundPet.id)
       if (progress.length > 0) {
-        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt })))
+        setProgressData(progress.map(p => ({ text: p.content, time: p.createdAt, photo: p.photo })))
       }
     }
   }, [pets])
@@ -61,12 +61,26 @@ const DetailPage: React.FC = () => {
   const petTypeLabel = pet.petType === 'cat' ? '猫' : pet.petType === 'dog' ? '狗' : '其他'
   const bodySizeLabel = pet.bodySize === 'small' ? '小型' : pet.bodySize === 'medium' ? '中型' : '大型'
 
+  const maskPhone = (phone: string) => {
+    if (!phone || phone.length < 7) return phone
+    return phone.slice(0, 3) + '****' + phone.slice(-4)
+  }
+
   const handleCall = () => {
     console.info('[Detail] Call owner for pet:', pet.id, pet.nickname)
-    const phone = pet.ownerPhone.replace(/\*/g, '0')
-    Taro.makePhoneCall({ phoneNumber: phone }).catch(err => {
-      console.error('[Detail] Call failed', err)
-      Taro.showToast({ title: '拨打失败，请稍后重试', icon: 'none' })
+    Taro.showModal({
+      title: '联系主人',
+      content: `确认拨打 ${maskPhone(pet.ownerPhone)} 联系${pet.nickname}的主人？`,
+      confirmText: '拨打',
+      confirmColor: '#FF6B35',
+      success: (res) => {
+        if (res.confirm) {
+          Taro.makePhoneCall({ phoneNumber: pet.ownerPhone }).catch(err => {
+            console.error('[Detail] Call failed', err)
+            Taro.showToast({ title: '拨打失败，请稍后重试', icon: 'none' })
+          })
+        }
+      }
     })
   }
 
@@ -92,6 +106,11 @@ const DetailPage: React.FC = () => {
   const handleReport = () => {
     console.info('[Detail] Report false clue for pet:', pet.id)
     Taro.navigateTo({ url: '/pages/report/index' })
+  }
+
+  const handleViewMap = () => {
+    console.info('[Detail] View map for pet:', pet.id, pet.nickname)
+    Taro.navigateTo({ url: `/pages/map/index?id=${pet.id}&name=${encodeURIComponent(pet.nickname)}` })
   }
 
   return (
@@ -127,7 +146,12 @@ const DetailPage: React.FC = () => {
       )}
 
       <View className={styles.detailSection}>
-        <Text className={styles.sectionTitle}>走失详情</Text>
+        <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+          <Text className={styles.sectionTitle}>走失详情</Text>
+          <View className={styles.viewMapBtn} onClick={handleViewMap}>
+            <Text style={{ fontSize: 24, color: '#FF6B35' }}>🗺️ 查看地图</Text>
+          </View>
+        </View>
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>走失时间</Text>
           <Text className={styles.infoValue}>{pet.lostTime}</Text>
@@ -142,7 +166,7 @@ const DetailPage: React.FC = () => {
         </View>
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>联系方式</Text>
-          <Text className={styles.infoValue}>{pet.ownerPhone}</Text>
+          <Text className={styles.infoValue}>{maskPhone(pet.ownerPhone)}</Text>
         </View>
         <View className={styles.infoRow}>
           <Text className={styles.infoLabel}>补充描述</Text>
@@ -186,6 +210,9 @@ const DetailPage: React.FC = () => {
             </View>
             <View className={styles.progressContent}>
               <Text className={styles.progressText}>{item.text}</Text>
+              {item.photo && (
+                <Image className={styles.progressPhoto} src={item.photo} mode="aspectFill" />
+              )}
               <Text className={styles.progressTime}>{item.time}</Text>
             </View>
           </View>

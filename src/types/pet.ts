@@ -72,5 +72,6 @@ export interface ProgressUpdate {
   id: string
   petId: string
   content: string
+  photo?: string
   createdAt: string
 }

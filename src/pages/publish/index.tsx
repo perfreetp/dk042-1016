@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { View, Text, Input, Textarea } from '@tarojs/components'
+import { View, Text, Input, Textarea, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classnames from 'classnames'
 import { usePetStore } from '@/store/petStore'
@@ -38,6 +38,7 @@ const PublishPage: React.FC = () => {
   const [ownerName, setOwnerName] = useState('')
   const [ownerPhone, setOwnerPhone] = useState('')
   const [rewardStr, setRewardStr] = useState('')
+  const [photoUrl, setPhotoUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
   const handleNicknameInput = (e: any) => {
@@ -76,6 +77,40 @@ const PublishPage: React.FC = () => {
     setRewardStr(e.detail.value)
   }
 
+  const handleChooseImage = () => {
+    Taro.showActionSheet({
+      itemList: ['从相册选择', '拍照'],
+      success: (res) => {
+        const sourceType: ('album' | 'camera')[] = res.tapIndex === 0
+          ? ['album']
+          : ['camera']
+        Taro.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType,
+          success: (imgRes) => {
+            const tempPath = imgRes.tempFilePaths[0]
+            if (tempPath) {
+              setPhotoUrl(tempPath)
+              console.info('[Publish] Photo selected:', tempPath)
+            }
+          },
+          fail: (err) => {
+            console.error('[Publish] Choose image failed:', err)
+            if (err.errMsg && err.errMsg.indexOf('cancel') === -1) {
+              Taro.showToast({ title: '选择照片失败', icon: 'none' })
+            }
+          }
+        })
+      },
+      fail: () => {}
+    })
+  }
+
+  const handleRemovePhoto = () => {
+    setPhotoUrl('')
+  }
+
   const handleSubmit = () => {
     if (submitting) return
 
@@ -105,9 +140,12 @@ const PublishPage: React.FC = () => {
     const minute = String(now.getMinutes()).padStart(2, '0')
     const defaultTime = `${year}-${month}-${day} ${hour}:${minute}`
 
-    const photos = photoIds[petType]
-    const photoId = photos[Math.floor(Math.random() * photos.length)]
-    const photoUrl = `https://picsum.photos/id/${photoId}/300/300`
+    let finalPhoto = photoUrl
+    if (!finalPhoto) {
+      const photos = photoIds[petType]
+      const photoId = photos[Math.floor(Math.random() * photos.length)]
+      finalPhoto = `https://picsum.photos/id/${photoId}/300/300`
+    }
     const rewardNum = rewardStr ? parseInt(rewardStr) || 0 : 0
 
     try {
@@ -117,7 +155,7 @@ const PublishPage: React.FC = () => {
         breed: breed.trim(),
         bodySize,
         features: features.trim(),
-        photo: photoUrl,
+        photo: finalPhoto,
         status: 'lost',
         lostTime: lostTime.trim() || defaultTime,
         lostLocation: lostLocation.trim(),
@@ -140,6 +178,7 @@ const PublishPage: React.FC = () => {
         setOwnerName('')
         setOwnerPhone('')
         setRewardStr('')
+        setPhotoUrl('')
         setSubmitting(false)
         Taro.switchTab({ url: '/pages/home/index' })
       }, 1500)
@@ -155,13 +194,22 @@ const PublishPage: React.FC = () => {
       <View className={styles.formSection}>
         <Text className={styles.sectionTitle}>宠物照片</Text>
         <View className={styles.photoUpload}>
-          <View className={styles.addPhoto}>
-            <Text className={styles.addIcon}>+</Text>
-            <Text className={styles.addText}>添加照片</Text>
-          </View>
+          {photoUrl ? (
+            <View className={styles.photoItem}>
+              <Image className={styles.photoImg} src={photoUrl} mode="aspectFill" />
+              <View className={styles.removeBtn} onClick={handleRemovePhoto}>
+                <Text className={styles.removeText}>×</Text>
+              </View>
+            </View>
+          ) : (
+            <View className={styles.addPhoto} onClick={handleChooseImage}>
+              <Text className={styles.addIcon}>+</Text>
+              <Text className={styles.addText}>添加照片</Text>
+            </View>
+          )}
         </View>
         <Text style={{ fontSize: 22, color: '#999' }}>
-          照片上传功能开发中，系统将自动匹配对应宠物照片
+          建议上传清晰正面照，方便邻居识别
         </Text>
       </View>
 

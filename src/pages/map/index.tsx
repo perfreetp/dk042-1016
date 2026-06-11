@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
+import Taro, { useRouter, useDidShow } from '@tarojs/taro'
 import classnames from 'classnames'
 import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
@@ -33,13 +34,25 @@ const markerPositions = [
 ]
 
 const MapPage: React.FC = () => {
+  const router = useRouter()
+  const petId = router.params.id || ''
+  const petName = router.params.name || ''
   const [activeTab, setActiveTab] = useState<MapTabType>('all')
-  const { getSightingsByType } = usePetStore()
+  const { getSightingsByType, getSightingsByPetAndType, sightings } = usePetStore()
 
   const filteredSightings = useMemo(() => {
-    console.info('[Map] Filter changed:', activeTab)
+    console.info('[Map] Filter changed:', activeTab, 'petId:', petId)
+    if (petId) {
+      return getSightingsByPetAndType(petId, activeTab)
+    }
     return getSightingsByType(activeTab)
-  }, [activeTab, getSightingsByType])
+  }, [activeTab, petId, getSightingsByType, getSightingsByPetAndType, sightings])
+
+  useDidShow(() => {
+    if (petId && petName) {
+      Taro.setNavigationBarTitle({ title: `${petName}的寻宠地图` })
+    }
+  })
 
   return (
     <View className={styles.mapPage}>

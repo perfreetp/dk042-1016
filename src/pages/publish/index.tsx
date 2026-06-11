@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { View, Text, Input, Textarea } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import classnames from 'classnames'
-import type { PetType, BodySize, PetStatus } from '@/types/pet'
 import { usePetStore } from '@/store/petStore'
+import type { PetType, BodySize } from '@/types/pet'
 import styles from './index.module.scss'
 
 const petTypes: { key: PetType; label: string }[] = [
@@ -26,6 +26,7 @@ const photoIds: Record<PetType, number[]> = {
 
 const PublishPage: React.FC = () => {
   const { addPet } = usePetStore()
+
   const [petType, setPetType] = useState<PetType>('cat')
   const [nickname, setNickname] = useState('')
   const [breed, setBreed] = useState('')
@@ -33,14 +34,50 @@ const PublishPage: React.FC = () => {
   const [features, setFeatures] = useState('')
   const [lostTime, setLostTime] = useState('')
   const [lostLocation, setLostLocation] = useState('')
+  const [description, setDescription] = useState('')
   const [ownerName, setOwnerName] = useState('')
   const [ownerPhone, setOwnerPhone] = useState('')
-  const [reward, setReward] = useState('')
-  const [description, setDescription] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [rewardStr, setRewardStr] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleNicknameInput = (e: any) => {
+    setNickname(e.detail.value)
+  }
+
+  const handleBreedInput = (e: any) => {
+    setBreed(e.detail.value)
+  }
+
+  const handleFeaturesInput = (e: any) => {
+    setFeatures(e.detail.value)
+  }
+
+  const handleLostTimeInput = (e: any) => {
+    setLostTime(e.detail.value)
+  }
+
+  const handleLocationInput = (e: any) => {
+    setLostLocation(e.detail.value)
+  }
+
+  const handleDescInput = (e: any) => {
+    setDescription(e.detail.value)
+  }
+
+  const handleOwnerNameInput = (e: any) => {
+    setOwnerName(e.detail.value)
+  }
+
+  const handlePhoneInput = (e: any) => {
+    setOwnerPhone(e.detail.value)
+  }
+
+  const handleRewardInput = (e: any) => {
+    setRewardStr(e.detail.value)
+  }
 
   const handleSubmit = () => {
-    if (isSubmitting) return
+    if (submitting) return
 
     if (!nickname.trim()) {
       Taro.showToast({ title: '请输入宠物昵称', icon: 'none' })
@@ -55,16 +92,23 @@ const PublishPage: React.FC = () => {
       return
     }
     if (!ownerPhone.trim()) {
-      Taro.showToast({ title: '请输入联系方式', icon: 'none' })
+      Taro.showToast({ title: '请输入联系电话', icon: 'none' })
       return
     }
 
-    setIsSubmitting(true)
-    const status: PetStatus = 'lost'
+    setSubmitting(true)
     const now = new Date()
-    const formattedTime = lostTime || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hour = String(now.getHours()).padStart(2, '0')
+    const minute = String(now.getMinutes()).padStart(2, '0')
+    const defaultTime = `${year}-${month}-${day} ${hour}:${minute}`
+
     const photos = photoIds[petType]
     const photoId = photos[Math.floor(Math.random() * photos.length)]
+    const photoUrl = `https://picsum.photos/id/${photoId}/300/300`
+    const rewardNum = rewardStr ? parseInt(rewardStr) || 0 : 0
 
     try {
       addPet({
@@ -73,13 +117,13 @@ const PublishPage: React.FC = () => {
         breed: breed.trim(),
         bodySize,
         features: features.trim(),
-        photo: `https://picsum.photos/id/${photoId}/300/300`,
-        status,
-        lostTime: formattedTime,
+        photo: photoUrl,
+        status: 'lost',
+        lostTime: lostTime.trim() || defaultTime,
         lostLocation: lostLocation.trim(),
         ownerName: ownerName.trim() || '匿名',
         ownerPhone: ownerPhone.trim(),
-        reward: reward ? parseInt(reward) || 0 : 0,
+        reward: rewardNum,
         description: description.trim()
       })
 
@@ -92,22 +136,18 @@ const PublishPage: React.FC = () => {
         setFeatures('')
         setLostTime('')
         setLostLocation('')
+        setDescription('')
         setOwnerName('')
         setOwnerPhone('')
-        setReward('')
-        setDescription('')
-        setIsSubmitting(false)
+        setRewardStr('')
+        setSubmitting(false)
         Taro.switchTab({ url: '/pages/home/index' })
       }, 1500)
     } catch (err) {
       console.error('[Publish] Failed', err)
-      setIsSubmitting(false)
+      setSubmitting(false)
       Taro.showToast({ title: '发布失败，请重试', icon: 'none' })
     }
-  }
-
-  const handleLocationInput = (e: any) => {
-    setLostLocation(e.detail.value)
   }
 
   return (
@@ -120,6 +160,9 @@ const PublishPage: React.FC = () => {
             <Text className={styles.addText}>添加照片</Text>
           </View>
         </View>
+        <Text style={{ fontSize: 22, color: '#999' }}>
+          照片上传功能开发中，系统将自动匹配对应宠物照片
+        </Text>
       </View>
 
       <View className={styles.formSection}>
@@ -128,7 +171,7 @@ const PublishPage: React.FC = () => {
         <View className={styles.formItem}>
           <Text className={styles.label}>宠物类型<Text className={styles.required}>*</Text></Text>
           <View className={styles.typeSelector}>
-            {petTypes.map(t => (
+            {petTypes.map((t) => (
               <View
                 key={t.key}
                 className={classnames(styles.typeOption, petType === t.key && styles.active)}
@@ -141,23 +184,23 @@ const PublishPage: React.FC = () => {
         </View>
 
         <View className={styles.formItem}>
-          <Text className={styles.label}>宠物昵称<Text className={styles.required}>*</Text>
+          <Text className={styles.label}>宠物昵称<Text className={styles.required}>*</Text></Text>
           <Input
             className={styles.input}
-            placeholder="请输入宠物昵称"
+            placeholder='请输入宠物昵称'
             value={nickname}
-            onInput={e => setNickname(e.detail.value)}
+            onInput={handleNicknameInput}
             maxlength={20}
           />
         </View>
 
         <View className={styles.formItem}>
-          <Text className={styles.label}>品种<Text className={styles.required}>*</TextText>
+          <Text className={styles.label}>品种<Text className={styles.required}>*</Text></Text>
           <Input
             className={styles.input}
-            placeholder="如：橘猫、柯基、英短"
+            placeholder='如：橘猫、柯基、英短'
             value={breed}
-            onInput={e => setBreed(e.detail.value)}
+            onInput={handleBreedInput}
             maxlength={30}
           />
         </View>
@@ -165,7 +208,7 @@ const PublishPage: React.FC = () => {
         <View className={styles.formItem}>
           <Text className={styles.label}>体型</Text>
           <View className={styles.sizeSelector}>
-            {bodySizes.map(s => (
+            {bodySizes.map((s) => (
               <View
                 key={s.key}
                 className={classnames(styles.sizeOption, bodySize === s.key && styles.active)}
@@ -181,10 +224,11 @@ const PublishPage: React.FC = () => {
           <Text className={styles.label}>明显特征</Text>
           <Textarea
             className={styles.textarea}
-            placeholder="描述宠物明显特征，如毛色、伤痕、项圈等"
+            placeholder='描述宠物明显特征，如毛色、伤痕、项圈等'
             value={features}
-            onInput={e => setFeatures(e.detail.value)}
+            onInput={handleFeaturesInput}
             maxlength={200}
+            autoHeight={false}
           />
         </View>
       </View>
@@ -196,18 +240,18 @@ const PublishPage: React.FC = () => {
           <Text className={styles.label}>走失时间</Text>
           <Input
             className={styles.input}
-            placeholder="如：2026-06-12 08:30"
+            placeholder='如：2026-06-12 08:30（不填则使用当前时间）'
             value={lostTime}
-            onInput={e => setLostTime(e.detail.value)}
+            onInput={handleLostTimeInput}
             maxlength={30}
           />
         </View>
 
         <View className={styles.formItem}>
-          <Text className={styles.label}>走失地点<Text className={styles.required}>*</TextText>
+          <Text className={styles.label}>走失地点<Text className={styles.required}>*</Text></Text>
           <Input
             className={styles.input}
-            placeholder="请输入走失地点，如：阳光花园3栋楼下"
+            placeholder='请输入走失地点，如：阳光花园3栋楼下'
             value={lostLocation}
             onInput={handleLocationInput}
             maxlength={50}
@@ -218,10 +262,11 @@ const PublishPage: React.FC = () => {
           <Text className={styles.label}>补充描述</Text>
           <Textarea
             className={styles.textarea}
-            placeholder="描述走失时的情况、宠物习性等"
+            placeholder='描述走失时的情况、宠物习性等'
             value={description}
-            onInput={e => setDescription(e.detail.value)}
+            onInput={handleDescInput}
             maxlength={500}
+            autoHeight={false}
           />
         </View>
       </View>
@@ -233,21 +278,21 @@ const PublishPage: React.FC = () => {
           <Text className={styles.label}>主人姓名</Text>
           <Input
             className={styles.input}
-            placeholder="请输入您的姓名"
+            placeholder='请输入您的姓名'
             value={ownerName}
-            onInput={e => setOwnerName(e.detail.value)}
+            onInput={handleOwnerNameInput}
             maxlength={20}
           />
         </View>
 
         <View className={styles.formItem}>
-          <Text className={styles.label}>联系电话<Text className={styles.required}>*</TextText>
+          <Text className={styles.label}>联系电话<Text className={styles.required}>*</Text></Text>
           <Input
             className={styles.input}
-            type="number"
-            placeholder="请输入联系电话"
+            type='number'
+            placeholder='请输入联系电话'
             value={ownerPhone}
-            onInput={e => setOwnerPhone(e.detail.value)}
+            onInput={handlePhoneInput}
             maxlength={11}
           />
         </View>
@@ -258,10 +303,10 @@ const PublishPage: React.FC = () => {
             <Text className={styles.rewardUnit}>¥</Text>
             <Input
               className={styles.input}
-              type="digit"
-              placeholder="0"
-              value={reward}
-              onInput={e => setReward(e.detail.value)}
+              type='digit'
+              placeholder='0'
+              value={rewardStr}
+              onInput={handleRewardInput}
               maxlength={6}
             />
           </View>
@@ -271,7 +316,7 @@ const PublishPage: React.FC = () => {
       <View className={styles.submitBar}>
         <View className={styles.submitBtn} onClick={handleSubmit}>
           <Text className={styles.submitText}>
-            {isSubmitting ? '发布中...' : '发布寻宠信息'}
+            {submitting ? '发布中...' : '发布寻宠信息'}
           </Text>
         </View>
       </View>

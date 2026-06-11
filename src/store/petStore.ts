@@ -55,7 +55,16 @@ export const usePetStore = create<PetStore>((set, get) => ({
       volunteerCount: 0,
       isExpired: false
     }
-    set((state) => ({ pets: [newPet, ...state.pets] }))
+    const initialProgress: ProgressUpdate = {
+      id: `pg${Date.now()}`,
+      petId: newPet.id,
+      content: '主人发布走失信息',
+      createdAt: newPet.createdAt
+    }
+    set((state) => ({
+      pets: [newPet, ...state.pets],
+      progressUpdates: [initialProgress, ...state.progressUpdates]
+    }))
     console.info('[Store] New pet added:', newPet.id, newPet.nickname)
   },
 

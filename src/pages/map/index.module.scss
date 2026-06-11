@@ -99,8 +99,16 @@
       border: 4rpx solid $color-bg-card;
       box-shadow: $shadow-card;
 
-      &.sighting {
+      &.lost {
         background-color: $color-status-lost;
+        width: 40rpx;
+        height: 40rpx;
+        border: 4rpx solid #fff;
+        box-shadow: 0 0 0 4rpx $color-status-lost, $shadow-card;
+      }
+
+      &.sighting {
+        background-color: $color-status-reward;
       }
 
       &.patrol {
@@ -121,6 +129,15 @@
       margin-top: 4rpx;
       white-space: nowrap;
     }
+  }
+
+  .routeLine {
+    position: absolute;
+    height: 4rpx;
+    background: linear-gradient(90deg, $color-status-lost 0%, $color-status-reward 100%);
+    opacity: 0.6;
+    z-index: 1;
+    border-radius: 2rpx;
   }
 
   .mapCenter {
@@ -154,8 +171,12 @@
       height: 16rpx;
       border-radius: 50%;
 
-      &.sighting {
+      &.lost {
         background-color: $color-status-lost;
+      }
+
+      &.sighting {
+        background-color: $color-status-reward;
       }
 
       &.patrol {
@@ -210,9 +231,14 @@
         border-radius: $radius-xs;
         white-space: nowrap;
 
-        &.sighting {
+        &.lost {
           color: $color-status-lost;
           background-color: $color-tag-bg-lost;
+        }
+
+        &.sighting {
+          color: $color-status-reward;
+          background-color: $color-tag-bg-reward;
         }
 
         &.patrol {

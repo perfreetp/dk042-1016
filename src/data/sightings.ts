@@ -2,6 +2,16 @@ import type { SightingPoint } from '@/types/pet'
 
 export const mockSightings: SightingPoint[] = [
   {
+    id: 'l1',
+    petId: '1',
+    latitude: 30.5725,
+    longitude: 104.0665,
+    address: '阳光花园3栋2单元楼下',
+    time: '2026-06-10 08:00',
+    description: '橘座最后出现的位置，走失起点',
+    type: 'lost'
+  },
+  {
     id: 's1',
     petId: '1',
     latitude: 30.5728,
@@ -20,6 +30,16 @@ export const mockSightings: SightingPoint[] = [
     time: '2026-06-10 11:30',
     description: '车库入口处发现疑似橘座',
     type: 'sighting'
+  },
+  {
+    id: 'l2',
+    petId: '2',
+    latitude: 30.5678,
+    longitude: 104.0718,
+    address: '碧桂园东区12号楼',
+    time: '2026-06-11 18:00',
+    description: '豆豆遛弯时受惊走失位置',
+    type: 'lost'
   },
   {
     id: 's3',
@@ -42,6 +62,16 @@ export const mockSightings: SightingPoint[] = [
     type: 'sighting'
   },
   {
+    id: 'l3',
+    petId: '3',
+    latitude: 30.5648,
+    longitude: 104.0648,
+    address: '翡翠湾5栋',
+    time: '2026-06-09 14:00',
+    description: '蓝白开门时窜出走失',
+    type: 'lost'
+  },
+  {
     id: 's5',
     petId: '3',
     latitude: 30.5650,
@@ -50,6 +80,16 @@ export const mockSightings: SightingPoint[] = [
     time: '2026-06-09 14:30',
     description: '蓝白异瞳猫出现在7号楼',
     type: 'sighting'
+  },
+  {
+    id: 'l4',
+    petId: '4',
+    latitude: 30.5698,
+    longitude: 104.0688,
+    address: '锦绣家园南门',
+    time: '2026-06-12 07:00',
+    description: '大金毛早遛时走失',
+    type: 'lost'
   },
   {
     id: 's6',

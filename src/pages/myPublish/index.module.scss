@@ -3,7 +3,68 @@
 .myPublishPage {
   min-height: 100vh;
   background-color: $color-bg-page;
-  padding: $spacing-md $page-padding;
+  padding: $spacing-md $page-padding 80rpx;
+  position: relative;
+}
+
+.markFoundBtn {
+  height: 64rpx;
+  background-color: rgba(43, 164, 113, 0.1);
+  border: 2rpx solid rgba(43, 164, 113, 0.3);
+  border-radius: 0 0 16rpx 16rpx;
+  @include flex-center;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.modalMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  @include flex-center;
+  padding: 0 64rpx;
+}
+
+.modalContent {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+
+.thanksTextarea {
+  width: 100%;
+  min-height: 180rpx;
+  background-color: $color-bg-page;
+  border-radius: $radius-sm;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  height: 88rpx;
+  background-color: $color-bg-page;
+  border-radius: 44rpx;
+  @include flex-center;
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  height: 88rpx;
+  background: linear-gradient(135deg, $color-status-found 0%, #2BA471 100%);
+  border-radius: 44rpx;
+  @include flex-center;
 }
 
 .emptyState {

@@ -5,16 +5,18 @@ import classnames from 'classnames'
 import { usePetStore } from '@/store/petStore'
 import styles from './index.module.scss'
 
-type MapTabType = 'all' | 'sighting' | 'patrol' | 'route'
+type MapTabType = 'all' | 'lost' | 'sighting' | 'patrol' | 'route'
 
 const mapTabs: { key: MapTabType; label: string }[] = [
   { key: 'all', label: '全部' },
+  { key: 'lost', label: '走失点' },
   { key: 'sighting', label: '目击' },
   { key: 'patrol', label: '巡查点' },
   { key: 'route', label: '路线' }
 ]
 
 const typeLabels: Record<string, string> = {
+  lost: '走失点',
   sighting: '目击',
   patrol: '巡查点',
   route: '路线'
@@ -42,11 +44,28 @@ const MapPage: React.FC = () => {
 
   const filteredSightings = useMemo(() => {
     console.info('[Map] Filter changed:', activeTab, 'petId:', petId)
+    let result: any[]
     if (petId) {
-      return getSightingsByPetAndType(petId, activeTab)
+      result = getSightingsByPetAndType(petId, activeTab)
+    } else {
+      result = getSightingsByType(activeTab)
     }
-    return getSightingsByType(activeTab)
+    return [...result].sort((a, b) => {
+      if (!a.time) return 1
+      if (!b.time) return -1
+      return a.time.localeCompare(b.time)
+    })
   }, [activeTab, petId, getSightingsByType, getSightingsByPetAndType, sightings])
+
+  const routePoints = useMemo(() => {
+    return filteredSightings
+      .filter(s => s.type === 'lost' || s.type === 'sighting')
+      .sort((a, b) => {
+        if (!a.time) return 1
+        if (!b.time) return -1
+        return a.time.localeCompare(b.time)
+      })
+  }, [filteredSightings])
 
   useDidShow(() => {
     if (petId && petName) {
@@ -76,10 +95,36 @@ const MapPage: React.FC = () => {
           {[25, 50, 75].map(left => (
             <View key={`v${left}`} className={classnames(styles.gridLine, styles.gridLineV)} style={{ left: `${left}%` }} />
           ))}
+          {routePoints.length > 1 && routePoints.map((s, i) => {
+            if (i === 0) return null
+            const prevIdx = (i - 1) % markerPositions.length
+            const currIdx = i % markerPositions.length
+            const prev = markerPositions[prevIdx]
+            const curr = markerPositions[currIdx]
+            const x1 = parseInt(prev.left)
+            const y1 = parseInt(prev.top)
+            const x2 = parseInt(curr.left)
+            const y2 = parseInt(curr.top)
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI
+            return (
+              <View
+                key={`line-${i}`}
+                className={styles.routeLine}
+                style={{
+                  top: `${y1}%`,
+                  left: `${x1}%`,
+                  width: `${length}%`,
+                  transform: `rotate(${angle}deg)`,
+                  transformOrigin: '0 50%'
+                }}
+              />
+            )
+          })}
           {filteredSightings.map((s, i) => (
             <View
               key={s.id}
-              className={styles.mapMarker}
+              className={classnames(styles.mapMarker, s.type === 'lost' && styles.markerLost)}
               style={{
                 top: markerPositions[i % markerPositions.length]?.top || '50%',
                 left: markerPositions[i % markerPositions.length]?.left || '50%'
@@ -97,6 +142,10 @@ const MapPage: React.FC = () => {
       </View>
 
       <View className={styles.legend}>
+        <View className={styles.legendItem}>
+          <View className={classnames(styles.legendDot, styles.lost)} />
+          <Text className={styles.legendText}>走失起点</Text>
+        </View>
         <View className={styles.legendItem}>
           <View className={classnames(styles.legendDot, styles.sighting)} />
           <Text className={styles.legendText}>目击位置</Text>

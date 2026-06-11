@@ -45,7 +45,7 @@ export interface SightingPoint {
   address: string
   time: string
   description: string
-  type: 'sighting' | 'patrol' | 'route'
+  type: 'lost' | 'sighting' | 'patrol' | 'route'
 }
 
 export interface UserInfo {
@@ -73,5 +73,6 @@ export interface ProgressUpdate {
   petId: string
   content: string
   photo?: string
+  type?: 'normal' | 'found' | 'thanks' | 'clue'
   createdAt: string
 }

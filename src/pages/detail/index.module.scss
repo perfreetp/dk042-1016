@@ -187,73 +187,184 @@
   }
 }
 
-.progressSection {
+.tabSection {
   margin: 0 $page-padding;
   background-color: $color-bg-card;
   border-radius: $radius-md;
   box-shadow: $shadow-card;
   padding: $spacing-lg;
+}
 
-  .sectionTitle {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
-    color: $color-text-primary;
-    margin-bottom: $spacing-md;
+.tabItem {
+  flex: 1;
+  padding-bottom: $spacing-md;
+  @include flex-center;
+  position: relative;
+  cursor: pointer;
+
+  .tabText {
+    font-size: $font-size-md;
+    color: $color-text-secondary;
+    font-weight: $font-weight-medium;
   }
 
-  .progressItem {
-    display: flex;
-    gap: $spacing-md;
-    margin-bottom: $spacing-lg;
-    position: relative;
+  &.tabActive {
+    .tabText {
+      color: $color-primary;
+      font-weight: $font-weight-semibold;
+    }
 
-    &:not(:last-child)::before {
+    &::after {
       content: '';
       position: absolute;
-      left: 15rpx;
-      top: 40rpx;
-      bottom: -24rpx;
-      width: 4rpx;
-      background-color: $color-divider;
-    }
-
-    .dot {
-      width: 32rpx;
-      height: 32rpx;
-      border-radius: $radius-round;
+      bottom: -2rpx;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 64rpx;
+      height: 6rpx;
       background-color: $color-primary;
-      flex-shrink: 0;
-      @include flex-center;
+      border-radius: 3rpx;
+    }
+  }
+}
+
+.clueCount {
+  position: absolute;
+  top: 0;
+  right: 24rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  background-color: $color-status-lost;
+  border-radius: 16rpx;
+  @include flex-center;
+  padding: 0 8rpx;
+}
+
+.clueCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: $spacing-md 0;
+  border-bottom: 2rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.clueFalse {
+    opacity: 0.5;
+  }
+}
+
+.cluePhoto {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.cluePhotoPlaceholder {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-sm;
+  background-color: $color-bg-page;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.reportBtn {
+  padding: 8rpx 16rpx;
+  border: 2rpx solid rgba(231, 76, 60, 0.3);
+  border-radius: 24rpx;
+  background-color: rgba(231, 76, 60, 0.05);
+  flex-shrink: 0;
+}
+
+.falseTag {
+  padding: 8rpx 16rpx;
+  border: 2rpx solid rgba(231, 76, 60, 0.3);
+  border-radius: 24rpx;
+  background-color: rgba(231, 76, 60, 0.05);
+  flex-shrink: 0;
+}
+
+.progressItem {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  position: relative;
+
+  &:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15rpx;
+    top: 40rpx;
+    bottom: -24rpx;
+    width: 4rpx;
+    background-color: $color-divider;
+  }
+
+  .dot {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: $radius-round;
+    background-color: $color-primary;
+    flex-shrink: 0;
+    @include flex-center;
+  }
+
+  .dotInner {
+    width: 12rpx;
+    height: 12rpx;
+    border-radius: 50%;
+    background-color: $color-text-white;
+  }
+
+  .progressContent {
+    flex: 1;
+
+    .progressText {
+      font-size: $font-size-md;
+      color: $color-text-primary;
+      margin-bottom: 4rpx;
     }
 
-    .dotInner {
-      width: 12rpx;
-      height: 12rpx;
-      border-radius: 50%;
-      background-color: $color-text-white;
+    .progressPhoto {
+      width: 180rpx;
+      height: 180rpx;
+      border-radius: $radius-sm;
+      margin-top: 8rpx;
+      margin-bottom: 4rpx;
     }
 
-    .progressContent {
-      flex: 1;
+    .progressTime {
+      font-size: $font-size-xs;
+      color: $color-text-tertiary;
+    }
+  }
 
-      .progressText {
-        font-size: $font-size-md;
-        color: $color-text-primary;
-        margin-bottom: 4rpx;
+  &.type-found {
+    .dot {
+      background-color: $color-status-found;
+      .dotInner {
+        background-color: #fff;
       }
+    }
+    .progressText {
+      color: $color-status-found;
+      font-weight: $font-weight-semibold;
+    }
+  }
 
-      .progressPhoto {
-        width: 180rpx;
-        height: 180rpx;
-        border-radius: $radius-sm;
-        margin-top: 8rpx;
-        margin-bottom: 4rpx;
+  &.type-thanks {
+    .dot {
+      background-color: $color-status-reward;
+      .dotInner {
+        background-color: #fff;
       }
-
-      .progressTime {
-        font-size: $font-size-xs;
-        color: $color-text-tertiary;
-      }
+    }
+    .progressText {
+      color: $color-status-reward;
     }
   }
 }
@@ -308,4 +419,66 @@
       transform: scale(0.98);
     }
   }
+}
+
+.markFoundBtn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, $color-status-found 0%, #2BA471 100%);
+  border-radius: 44rpx;
+  @include flex-center;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.modalMask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  @include flex-center;
+  padding: 0 64rpx;
+}
+
+.modalContent {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+
+.thanksTextarea {
+  width: 100%;
+  min-height: 180rpx;
+  background-color: $color-bg-page;
+  border-radius: $radius-sm;
+  padding: 24rpx;
+  font-size: 28rpx;
+  color: $color-text-primary;
+  box-sizing: border-box;
+}
+
+.modalCancelBtn {
+  flex: 1;
+  height: 88rpx;
+  background-color: $color-bg-page;
+  border-radius: 44rpx;
+  @include flex-center;
+}
+
+.modalConfirmBtn {
+  flex: 1;
+  height: 88rpx;
+  background: linear-gradient(135deg, $color-status-found 0%, #2BA471 100%);
+  border-radius: 44rpx;
+  @include flex-center;
 }

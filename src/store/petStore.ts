@@ -16,11 +16,12 @@ interface PetStore {
   incrementViewCount: (id: string) => void
   incrementClueCount: (id: string) => void
   incrementVolunteerCount: (id: string) => void
-  markPetFound: (id: string) => void
+  markPetFound: (id: string, thanksNote?: string) => void
   setPetExpired: (id: string) => void
 
   addClue: (clue: Omit<ClueInfo, 'id' | 'createdAt' | 'isVerified' | 'isFalseReport'>) => void
   getCluesByPetId: (petId: string) => ClueInfo[]
+  markClueFalse: (clueId: string) => void
 
   getSightingsByType: (type: 'all' | 'sighting' | 'patrol' | 'route') => SightingPoint[]
   getSightingsByPetId: (petId: string) => SightingPoint[]
@@ -63,11 +64,22 @@ export const usePetStore = create<PetStore>((set, get) => ({
       content: '主人发布走失信息',
       createdAt: newPet.createdAt
     }
+    const lostSighting: SightingPoint = {
+      id: `l${Date.now()}`,
+      petId: newPet.id,
+      latitude: 30.57 + (Math.random() - 0.5) * 0.01,
+      longitude: 104.068 + (Math.random() - 0.5) * 0.01,
+      address: newPet.lostLocation,
+      time: newPet.lostTime,
+      description: `${newPet.nickname}走失起点`,
+      type: 'lost'
+    }
     set((state) => ({
       pets: [newPet, ...state.pets],
-      progressUpdates: [initialProgress, ...state.progressUpdates]
+      progressUpdates: [initialProgress, ...state.progressUpdates],
+      sightings: [lostSighting, ...state.sightings]
     }))
-    console.info('[Store] New pet added:', newPet.id, newPet.nickname)
+    console.info('[Store] New pet added:', newPet.id, newPet.nickname, 'with lost location')
   },
 
   getPetById: (id) => {
@@ -98,12 +110,35 @@ export const usePetStore = create<PetStore>((set, get) => ({
     }))
   },
 
-  markPetFound: (id) => {
+  markPetFound: (id, thanksNote) => {
+    const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
+    const foundProgress: ProgressUpdate = {
+      id: `pg${Date.now()}`,
+      petId: id,
+      content: '宠物已平安回家！',
+      type: 'found',
+      createdAt: now
+    }
     set((state) => ({
       pets: state.pets.map(p =>
-        p.id === id ? { ...p, status: 'found' as const, description: '已平安回家！感谢所有邻居的热心帮助！' } : p
-      )
+        p.id === id ? { ...p, status: 'found' as const, description: thanksNote || '已平安回家！感谢所有邻居的热心帮助！' } : p
+      ),
+      progressUpdates: [foundProgress, ...state.progressUpdates]
     }))
+    if (thanksNote && thanksNote.trim()) {
+      const thanksProgress: ProgressUpdate = {
+        id: `pg${Date.now() + 1}`,
+        petId: id,
+        content: `主人致谢：${thanksNote.trim()}`,
+        type: 'thanks',
+        createdAt: now
+      }
+      setTimeout(() => {
+        set((state) => ({
+          progressUpdates: [thanksProgress, ...state.progressUpdates]
+        }))
+      }, 100)
+    }
   },
 
   setPetExpired: (id) => {
@@ -154,6 +189,25 @@ export const usePetStore = create<PetStore>((set, get) => ({
 
   getCluesByPetId: (petId) => {
     return get().clues.filter(c => c.petId === petId)
+  },
+
+  markClueFalse: (clueId) => {
+    set((state) => ({
+      clues: state.clues.map(c =>
+        c.id === clueId ? { ...c, isFalseReport: true } : c
+      )
+    }))
+    const clue = get().clues.find(c => c.id === clueId)
+    if (clue) {
+      const progressContent = `线索已标记为虚假：${clue.content.slice(0, 15)}...`
+      get().addProgressUpdate({
+        petId: clue.petId,
+        content: progressContent,
+        type: 'normal',
+        createdAt: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      })
+    }
+    console.info('[Store] Clue marked false:', clueId)
   },
 
   getSightingsByType: (type) => {
